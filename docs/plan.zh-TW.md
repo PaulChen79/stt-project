@@ -12,7 +12,7 @@
    - 狀態：completed
    - 產出：基礎目錄與開發工具設定
 2. Docker Compose 與環境變數
-   - 狀態：pending
+   - 狀態：completed
    - 產出：`docker-compose.yml`、`Dockerfile`、`.env.example`
 3. Postgres Schema 與 Migration
    - 狀態：pending
