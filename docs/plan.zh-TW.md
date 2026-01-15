@@ -15,7 +15,7 @@
    - 狀態：completed
    - 產出：`docker-compose.yml`、`Dockerfile`、`.env.example`
 3. Postgres Schema 與 Migration
-   - 狀態：pending
+   - 狀態：completed
    - 產出：jobs table、migration 檔
 4. Domain Entities / Value Objects / Ports
    - 狀態：pending
