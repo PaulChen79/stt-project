@@ -1,5 +1,6 @@
 import express, { NextFunction, Request, Response } from 'express';
 import multer from 'multer';
+import { WebSocket, WebSocketServer } from 'ws';
 
 import { BullMQJobQueue } from '../../src/adapters/queue/BullMQJobQueue';
 import { LocalFileStorage } from '../../src/adapters/repositories/LocalFileStorage';
@@ -16,6 +17,7 @@ const env = loadEnv();
 
 const pool = createPostgresPool(env.databaseUrl);
 const redis = createRedisConnection(env.redisUrl);
+const subscriber = redis.duplicate();
 
 const jobRepository = new PostgresJobRepository(pool);
 const jobQueue = new BullMQJobQueue({ redis });
@@ -109,8 +111,121 @@ const server = app.listen(env.port, () => {
   console.log(`api listening on ${env.port}`);
 });
 
+const wss = new WebSocketServer({ server, path: '/ws' });
+const subscriptions = new Map<WebSocket, Set<string>>();
+
+const sendWs = (ws: WebSocket, payload: Record<string, unknown>) => {
+  if (ws.readyState === ws.OPEN) {
+    ws.send(JSON.stringify(payload));
+  }
+};
+
+const sendStatusSnapshot = async (ws: WebSocket, jobId: string) => {
+  const result = await getJob.execute({ jobId });
+  if (!result.job) {
+    sendWs(ws, { type: 'error', job_id: jobId, error: 'job not found' });
+    return;
+  }
+
+  const job = result.job;
+  sendWs(ws, { type: 'status', job_id: job.id, status: job.status });
+  if (job.status === 'completed') {
+    sendWs(ws, {
+      type: 'result',
+      job_id: job.id,
+      transcript: job.transcript,
+      summary: job.summary,
+    });
+  }
+  if (job.status === 'failed') {
+    sendWs(ws, { type: 'error', job_id: job.id, error: job.error });
+  }
+};
+
+wss.on('connection', (ws) => {
+  subscriptions.set(ws, new Set());
+
+  ws.on('message', (data) => {
+    try {
+      const payload = JSON.parse(data.toString()) as {
+        type?: string;
+        job_id?: string;
+      };
+      if (payload.type !== 'subscribe' || !payload.job_id) {
+        sendWs(ws, { type: 'error', error: 'invalid message' });
+        return;
+      }
+      const set = subscriptions.get(ws);
+      if (set) {
+        set.add(payload.job_id);
+      }
+      void sendStatusSnapshot(ws, payload.job_id);
+    } catch {
+      sendWs(ws, { type: 'error', error: 'invalid json' });
+    }
+  });
+
+  ws.on('close', () => {
+    subscriptions.delete(ws);
+  });
+});
+
+subscriber.subscribe('job_events');
+subscriber.on('message', (_channel, message) => {
+  try {
+    const event = JSON.parse(message) as {
+      type: string;
+      jobId: string;
+      status?: string;
+      stage?: string;
+      message?: string;
+      transcript?: string;
+      summary?: string;
+      error?: string;
+    };
+
+    const payload = (() => {
+      switch (event.type) {
+        case 'status':
+          return { type: 'status', job_id: event.jobId, status: event.status };
+        case 'progress':
+          return {
+            type: 'progress',
+            job_id: event.jobId,
+            stage: event.stage,
+            message: event.message,
+          };
+        case 'result':
+          return {
+            type: 'result',
+            job_id: event.jobId,
+            transcript: event.transcript,
+            summary: event.summary,
+          };
+        case 'error':
+          return { type: 'error', job_id: event.jobId, error: event.error };
+        default:
+          return null;
+      }
+    })();
+
+    if (!payload || !event.jobId) {
+      return;
+    }
+
+    for (const [ws, jobs] of subscriptions.entries()) {
+      if (jobs.has(event.jobId)) {
+        sendWs(ws, payload);
+      }
+    }
+  } catch {
+    return;
+  }
+});
+
 const shutdown = async () => {
   server.close();
+  await subscriber.quit();
   await pool.end();
   await redis.quit();
   process.exit(0);

@@ -33,7 +33,7 @@
    - 狀態：completed
    - 產出：Express routes、檔案限制 20MB、格式檢查
 9. Realtime: WebSocket + Redis Pub/Sub
-   - 狀態：pending
+   - 狀態：completed
    - 產出：WS server、訂閱協定、狀態與進度推送
 10. Retention Cleanup Job
    - 狀態：pending
