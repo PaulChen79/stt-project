@@ -6,6 +6,7 @@ import { TranscriptionService } from '../domain/interfaces/ports/TranscriptionSe
 
 export type ProcessJobInput = {
   jobId: string;
+  markFailedOnError?: boolean;
 };
 
 export class ProcessJob {
@@ -84,18 +85,20 @@ export class ProcessJob {
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';
-      job.markFailed(this.clock.now(), message);
-      await this.jobRepository.update(job);
-      await this.jobEvents.publish({
-        type: 'status',
-        jobId: job.id,
-        status: 'failed',
-      });
-      await this.jobEvents.publish({
-        type: 'error',
-        jobId: job.id,
-        error: message,
-      });
+      if (input.markFailedOnError ?? true) {
+        job.markFailed(this.clock.now(), message);
+        await this.jobRepository.update(job);
+        await this.jobEvents.publish({
+          type: 'status',
+          jobId: job.id,
+          status: 'failed',
+        });
+        await this.jobEvents.publish({
+          type: 'error',
+          jobId: job.id,
+          error: message,
+        });
+      }
       throw error;
     }
   }

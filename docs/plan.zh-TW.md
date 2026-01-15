@@ -27,7 +27,7 @@
    - 狀態：completed
    - 產出：Postgres repo、local file storage、Whisper/OpenAI gateway
 7. Queue/Worker Pipeline + Retry/DLQ
-   - 狀態：pending
+   - 狀態：completed
    - 產出：BullMQ worker、attempts=3、DLQ、失敗回補
 8. API: Upload / Query / Health
    - 狀態：pending
