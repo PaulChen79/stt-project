@@ -30,7 +30,7 @@
    - 狀態：completed
    - 產出：BullMQ worker、attempts=3、DLQ、失敗回補
 8. API: Upload / Query / Health
-   - 狀態：pending
+   - 狀態：completed
    - 產出：Express routes、檔案限制 20MB、格式檢查
 9. Realtime: WebSocket + Redis Pub/Sub
    - 狀態：pending
