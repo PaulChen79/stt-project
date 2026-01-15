@@ -42,7 +42,7 @@
    - 狀態：pending
    - 產出：上傳、狀態顯示、結果呈現、WS 連線
 12. 文件補完
-   - 狀態：pending
+   - 狀態：completed
    - 產出：README、API 文件、架構圖連結
 13. 測試與驗證
    - 狀態：pending
