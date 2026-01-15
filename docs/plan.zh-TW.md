@@ -36,7 +36,7 @@
    - 狀態：completed
    - 產出：WS server、訂閱協定、狀態與進度推送
 10. Retention Cleanup Job
-   - 狀態：pending
+   - 狀態：completed
    - 產出：定時清理 7 天以上任務與檔案
 11. React 前端
    - 狀態：pending
