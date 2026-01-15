@@ -136,13 +136,19 @@ sequenceDiagram
   API-->>U: WebSocket status/progress/events
 ```
 
-## 12. 交付物
+## 12. 架構文件（補充）
+- 資料夾結構：`docs/architecture/structure.md`
+- Ports/Interfaces：`docs/architecture/ports-interfaces.md`
+- ADR 模板：`docs/adr/0000-template.md`
+- ADR 範例（重試與 DLQ）：`docs/adr/0001-retry-dlq.md`
+
+## 13. 交付物
 - 完整原始碼（含 Dockerfile、docker-compose.yml）。
 - README：專案介紹、啟動方式、API 規格、環境變數說明。
 - React 前端頁面（上傳/查詢/顯示結果）。
 - 架構圖（可放於 README 或 docs/）。
 
-## 13. 環境變數（建議）
+## 14. 環境變數（建議）
 - `PORT`
 - `DATABASE_URL`
 - `REDIS_URL`
@@ -151,5 +157,5 @@ sequenceDiagram
 - `WHISPER_API_KEY`
 - `UPLOAD_DIR`
 
-## 14. 未決事項
+## 15. 未決事項
 - 無。已全部確認。
