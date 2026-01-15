@@ -45,7 +45,7 @@
    - 狀態：completed
    - 產出：README、API 文件、架構圖連結
 13. 測試與驗證
-   - 狀態：pending
+   - 狀態：completed
    - 產出：最小 smoke 測試與手動驗證步驟
 
 ## 依賴關係
