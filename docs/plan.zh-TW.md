@@ -9,7 +9,7 @@
 
 ## 任務清單
 1. 專案初始化與基礎結構（repo 結構、TS 設定、lint/format 基礎）
-   - 狀態：pending
+   - 狀態：completed
    - 產出：基礎目錄與開發工具設定
 2. Docker Compose 與環境變數
    - 狀態：pending
