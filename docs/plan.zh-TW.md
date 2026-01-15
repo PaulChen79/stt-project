@@ -21,7 +21,7 @@
    - 狀態：completed
    - 產出：`Job` entity、`JobStatus`、ports 介面
 5. Use Cases
-   - 狀態：pending
+   - 狀態：completed
    - 產出：CreateJob、GetJob、ProcessJob、CleanupExpiredJobs
 6. Adapters: Repository / FileStorage / External AI
    - 狀態：pending
