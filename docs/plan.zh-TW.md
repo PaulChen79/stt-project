@@ -39,7 +39,7 @@
    - 狀態：completed
    - 產出：定時清理 7 天以上任務與檔案
 11. React 前端
-   - 狀態：pending
+   - 狀態：completed
    - 產出：上傳、狀態顯示、結果呈現、WS 連線
 12. 文件補完
    - 狀態：completed

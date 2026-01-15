@@ -78,7 +78,15 @@ Events:
 ```
 
 ## Demo UI
-Open `ui/index.html` in a browser. Update the API base if your backend runs elsewhere.
+The UI is a standalone React app.
+
+```sh
+cd ui
+npm install
+npm run dev
+```
+
+Then open the URL shown by Vite and set the API base to `http://localhost:3000` if needed.
 
 ## Retention Policy
 Jobs and files are cleaned up after 7 days by a daily cleanup worker.

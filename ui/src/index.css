@@ -1,0 +1,101 @@
+:root {
+  --color-text: #111827;
+  --color-muted: #475569;
+  --color-panel: #ffffff;
+  --color-border: #e2e8f0;
+  --color-accent: #0f172a;
+  --color-bg: radial-gradient(circle at top, #f2f4ff 0%, #f6f1ea 55%, #f8fafc 100%);
+  font-family: "Space Grotesk", "IBM Plex Sans", sans-serif;
+  color: var(--color-text);
+  background: var(--color-bg);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+}
+
+.page {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 32px 20px 60px;
+  display: grid;
+  gap: 20px;
+}
+
+.header h1 {
+  margin: 0 0 6px;
+  font-size: 28px;
+}
+
+.panel {
+  background: var(--color-panel);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 16px;
+  display: grid;
+  gap: 10px;
+}
+
+label {
+  font-size: 14px;
+  color: var(--color-muted);
+}
+
+input[type='text'],
+input[type='file'] {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #cbd5f5;
+}
+
+button {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--color-accent);
+  background: var(--color-accent);
+  color: #ffffff;
+  cursor: pointer;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+.row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.label {
+  display: block;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #94a3b8;
+}
+
+.output {
+  background: #f1f5f9;
+  border-radius: 8px;
+  padding: 12px;
+  min-height: 80px;
+  white-space: pre-wrap;
+}
+
+.error {
+  margin: 0;
+  color: #b91c1c;
+}
