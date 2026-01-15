@@ -24,7 +24,7 @@
    - 狀態：completed
    - 產出：CreateJob、GetJob、ProcessJob、CleanupExpiredJobs
 6. Adapters: Repository / FileStorage / External AI
-   - 狀態：pending
+   - 狀態：completed
    - 產出：Postgres repo、local file storage、Whisper/OpenAI gateway
 7. Queue/Worker Pipeline + Retry/DLQ
    - 狀態：pending
