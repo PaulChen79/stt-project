@@ -11,7 +11,10 @@ import { loadEnv } from '../../src/infrastructure/config/env';
 import { SystemClock } from '../../src/infrastructure/config/systemClock';
 import { UuidGenerator } from '../../src/infrastructure/config/uuidGenerator';
 import { createPostgresPool } from '../../src/infrastructure/db/postgres';
-import { createRedisConnection } from '../../src/infrastructure/redis/redis';
+import {
+  createRedisConnection,
+  parseRedisUrl,
+} from '../../src/infrastructure/redis/redis';
 
 const env = loadEnv();
 
@@ -20,7 +23,7 @@ const redis = createRedisConnection(env.redisUrl);
 const subscriber = redis.duplicate();
 
 const jobRepository = new PostgresJobRepository(pool);
-const jobQueue = new BullMQJobQueue({ redis });
+const jobQueue = new BullMQJobQueue({ connection: parseRedisUrl(env.redisUrl) });
 const fileStorage = new LocalFileStorage(env.uploadDir);
 const clock = new SystemClock();
 const idGenerator = new UuidGenerator();

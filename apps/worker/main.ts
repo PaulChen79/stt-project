@@ -1,4 +1,4 @@
-import { Queue, QueueScheduler, Worker } from 'bullmq';
+import { Queue, Worker } from 'bullmq';
 
 import { OpenAISummarizationService } from '../../src/adapters/gateways/OpenAISummarizationService';
 import { OpenAIWhisperTranscriptionService } from '../../src/adapters/gateways/OpenAIWhisperTranscriptionService';
@@ -10,11 +10,15 @@ import { ProcessJob } from '../../src/usecases/ProcessJob';
 import { loadEnv } from '../../src/infrastructure/config/env';
 import { SystemClock } from '../../src/infrastructure/config/systemClock';
 import { createPostgresPool } from '../../src/infrastructure/db/postgres';
-import { createRedisConnection } from '../../src/infrastructure/redis/redis';
+import {
+  createRedisConnection,
+  parseRedisUrl,
+} from '../../src/infrastructure/redis/redis';
 
 const env = loadEnv();
 
 const redis = createRedisConnection(env.redisUrl);
+const bullConnection = parseRedisUrl(env.redisUrl);
 const pool = createPostgresPool(env.databaseUrl);
 
 const jobRepository = new PostgresJobRepository(pool);
@@ -47,12 +51,8 @@ const queueName = 'stt_jobs';
 const dlqName = 'stt_jobs_dlq';
 const cleanupQueueName = 'cleanup_jobs';
 
-const scheduler = new QueueScheduler(queueName, { connection: redis });
-const cleanupScheduler = new QueueScheduler(cleanupQueueName, {
-  connection: redis,
-});
-const dlq = new Queue(dlqName, { connection: redis });
-const cleanupQueue = new Queue(cleanupQueueName, { connection: redis });
+const dlq = new Queue(dlqName, { connection: bullConnection });
+const cleanupQueue = new Queue(cleanupQueueName, { connection: bullConnection });
 
 const worker = new Worker(
   queueName,
@@ -64,7 +64,7 @@ const worker = new Worker(
       markFailedOnError: isFinalAttempt,
     });
   },
-  { connection: redis },
+  { connection: bullConnection },
 );
 
 const cleanupWorker = new Worker(
@@ -72,7 +72,7 @@ const cleanupWorker = new Worker(
   async () => {
     await cleanupJobs.execute();
   },
-  { connection: redis },
+  { connection: bullConnection },
 );
 
 worker.on('failed', async (job, error) => {
@@ -106,8 +106,6 @@ const start = async () => {
 const shutdown = async () => {
   await worker.close();
   await cleanupWorker.close();
-  await scheduler.close();
-  await cleanupScheduler.close();
   await cleanupQueue.close();
   await dlq.close();
   await redis.quit();

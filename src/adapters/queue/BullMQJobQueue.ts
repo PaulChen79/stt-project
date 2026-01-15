@@ -1,10 +1,10 @@
 import { Queue } from 'bullmq';
-import IORedis from 'ioredis';
 
 import { JobQueue } from '../../domain/interfaces/ports/JobQueue';
+import { RedisConnectionOptions } from '../../infrastructure/redis/redis';
 
 type BullMQJobQueueConfig = {
-  redis: IORedis;
+  connection: RedisConnectionOptions;
   queueName?: string;
 };
 
@@ -13,7 +13,7 @@ export class BullMQJobQueue implements JobQueue {
 
   constructor(config: BullMQJobQueueConfig) {
     this.queue = new Queue(config.queueName ?? 'stt_jobs', {
-      connection: config.redis,
+      connection: config.connection,
     });
   }
 
