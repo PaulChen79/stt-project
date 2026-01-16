@@ -6,11 +6,18 @@ const normalizeBase = (value) => value.replace(/\/$/, '');
 
 const defaultBase =
   typeof window !== 'undefined'
-    ? normalizeBase(
-        window.location.origin === 'null'
-          ? 'http://localhost:3000'
-          : window.location.origin,
-      )
+    ? (() => {
+        if (window.location.origin === 'null') {
+          return 'http://localhost:3000';
+        }
+        if (
+          window.location.port === '5173' ||
+          window.location.port === '4173'
+        ) {
+          return 'http://localhost:3000';
+        }
+        return normalizeBase(window.location.origin);
+      })()
     : 'http://localhost:3000';
 
 const loadHistory = () => {
