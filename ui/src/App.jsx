@@ -45,6 +45,7 @@ const App = () => {
   const [transcript, setTranscript] = useState('');
   const [summary, setSummary] = useState('');
   const [error, setError] = useState('');
+  const [modalError, setModalError] = useState('');
   const [history, setHistory] = useState(loadHistory);
   const [selectedJobId, setSelectedJobId] = useState('');
 
@@ -202,7 +203,7 @@ const App = () => {
 
   const handleUpload = async () => {
     if (!file) {
-      setError('Please select a file');
+      setModalError('Please select a file');
       return;
     }
 
@@ -218,7 +219,7 @@ const App = () => {
 
     if (!response.ok) {
       const data = await response.json().catch(() => null);
-      setError(data?.error?.message ?? 'Upload failed');
+      setModalError(data?.error?.message ?? 'Upload failed');
       return;
     }
 
@@ -236,7 +237,7 @@ const App = () => {
 
   const handleFetch = async () => {
     if (!jobId) {
-      setError('Job ID is required');
+      setModalError('Job ID is required');
       return;
     }
 
@@ -247,7 +248,7 @@ const App = () => {
     );
     if (!response.ok) {
       const data = await response.json().catch(() => null);
-      setError(data?.error?.message ?? 'Fetch failed');
+      setModalError(data?.error?.message ?? 'Fetch failed');
       return;
     }
 
@@ -378,6 +379,23 @@ const App = () => {
           {selectedEntry?.summary || summary || '-'}
         </pre>
       </section>
+
+      {modalError && (
+        <div className="modal-backdrop">
+          <div className="modal">
+            <button
+              type="button"
+              className="modal-close"
+              onClick={() => setModalError('')}
+              aria-label="Close"
+            >
+              ×
+            </button>
+            <h2>Error</h2>
+            <p>{modalError}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
