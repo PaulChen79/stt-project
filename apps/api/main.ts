@@ -1,4 +1,4 @@
-import express, { NextFunction, Request, Response } from 'express';
+import express, { Response } from 'express';
 import multer from 'multer';
 import { WebSocket, WebSocketServer } from 'ws';
 
@@ -15,6 +15,7 @@ import {
   createRedisConnection,
   parseRedisUrl,
 } from '../../src/infrastructure/redis/redis';
+import { corsMiddleware, errorMiddleware } from './middleware';
 
 const env = loadEnv();
 
@@ -40,25 +41,7 @@ const getJob = new GetJob({ jobRepository });
 
 const app = express();
 
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (origin) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-    res.setHeader('Vary', 'Origin');
-  } else {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-  }
-  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'Content-Type, Authorization',
-  );
-  res.setHeader('Access-Control-Max-Age', '86400');
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(204);
-  }
-  next();
-});
+app.use(corsMiddleware);
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -123,12 +106,7 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok' });
 });
 
-app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
-  if ('code' in err && err.code === 'LIMIT_FILE_SIZE') {
-    return sendError(res, 413, 'FILE_TOO_LARGE', 'file too large');
-  }
-  return sendError(res, 500, 'INTERNAL_ERROR', err.message);
-});
+app.use(errorMiddleware);
 
 const server = app.listen(env.port, () => {
   console.log(`api listening on ${env.port}`);
