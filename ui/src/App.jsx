@@ -49,6 +49,8 @@ const App = () => {
   const [selectedJobId, setSelectedJobId] = useState('');
 
   const wsRef = useRef(null);
+  const subscribedRef = useRef(new Set());
+  const selectedRef = useRef('');
 
   const wsBase = useMemo(() => {
     const base = normalizeBase(apiBase);
@@ -60,6 +62,85 @@ const App = () => {
       return;
     }
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+  }, [history]);
+
+  useEffect(() => {
+    selectedRef.current = selectedJobId;
+  }, [selectedJobId]);
+
+  useEffect(() => {
+    closeSocket();
+    subscribedRef.current = new Set();
+    const ws = new WebSocket(`${wsBase}/ws`);
+    wsRef.current = ws;
+
+    ws.addEventListener('open', () => {
+      history.forEach((entry) => {
+        sendSubscribe(entry.jobId);
+      });
+    });
+
+    ws.addEventListener('message', (event) => {
+      const payload = JSON.parse(event.data);
+      const eventJobId = payload.job_id;
+      if (!eventJobId) {
+        return;
+      }
+
+      if (payload.type === 'status') {
+        upsertHistory({ jobId: eventJobId, status: payload.status ?? '' });
+        if (eventJobId === selectedRef.current) {
+          setStatus(payload.status ?? '');
+        }
+      }
+      if (payload.type === 'progress') {
+        upsertHistory({
+          jobId: eventJobId,
+          progress: payload.message ?? '',
+        });
+        if (eventJobId === selectedRef.current) {
+          setProgress(payload.message ?? '');
+        }
+      }
+      if (payload.type === 'result') {
+        upsertHistory({
+          jobId: eventJobId,
+          transcript: payload.transcript ?? '',
+          summary: payload.summary ?? '',
+          status: 'completed',
+        });
+        if (eventJobId === selectedRef.current) {
+          setTranscript(payload.transcript ?? '');
+          setSummary(payload.summary ?? '');
+          setStatus('completed');
+        }
+      }
+      if (payload.type === 'error') {
+        upsertHistory({
+          jobId: eventJobId,
+          error: payload.error ?? '',
+          status: 'failed',
+        });
+        if (eventJobId === selectedRef.current) {
+          setError(payload.error ?? '');
+          setStatus('failed');
+        }
+      }
+    });
+
+    ws.addEventListener('error', () => {
+      setError('WebSocket error');
+    });
+
+    return () => {
+      ws.close();
+    };
+  }, [wsBase]);
+
+  useEffect(() => {
+    history.forEach((entry) => {
+      sendSubscribe(entry.jobId);
+    });
   }, [history]);
 
   const resetOutputs = () => {
@@ -75,6 +156,18 @@ const App = () => {
       wsRef.current.close();
       wsRef.current = null;
     }
+  };
+
+  const sendSubscribe = (id) => {
+    const ws = wsRef.current;
+    if (!ws || ws.readyState !== WebSocket.OPEN) {
+      return;
+    }
+    if (subscribedRef.current.has(id)) {
+      return;
+    }
+    ws.send(JSON.stringify({ type: 'subscribe', job_id: id }));
+    subscribedRef.current.add(id);
   };
 
   const upsertHistory = (update) => {
@@ -105,69 +198,6 @@ const App = () => {
     setSelectedJobId(entry.jobId);
     setJobId(entry.jobId);
     applyStateFromHistory(entry);
-  };
-
-  const subscribe = (id) => {
-    closeSocket();
-
-    const ws = new WebSocket(`${wsBase}/ws`);
-    wsRef.current = ws;
-
-    ws.addEventListener('open', () => {
-      ws.send(JSON.stringify({ type: 'subscribe', job_id: id }));
-    });
-
-    ws.addEventListener('message', (event) => {
-      const payload = JSON.parse(event.data);
-      const eventJobId = payload.job_id;
-      if (!eventJobId) {
-        return;
-      }
-
-      if (payload.type === 'status') {
-        upsertHistory({ jobId: eventJobId, status: payload.status ?? '' });
-        if (eventJobId === selectedJobId) {
-          setStatus(payload.status ?? '');
-        }
-      }
-      if (payload.type === 'progress') {
-        upsertHistory({
-          jobId: eventJobId,
-          progress: payload.message ?? '',
-        });
-        if (eventJobId === selectedJobId) {
-          setProgress(payload.message ?? '');
-        }
-      }
-      if (payload.type === 'result') {
-        upsertHistory({
-          jobId: eventJobId,
-          transcript: payload.transcript ?? '',
-          summary: payload.summary ?? '',
-          status: 'completed',
-        });
-        if (eventJobId === selectedJobId) {
-          setTranscript(payload.transcript ?? '');
-          setSummary(payload.summary ?? '');
-          setStatus('completed');
-        }
-      }
-      if (payload.type === 'error') {
-        upsertHistory({
-          jobId: eventJobId,
-          error: payload.error ?? '',
-          status: 'failed',
-        });
-        if (eventJobId === selectedJobId) {
-          setError(payload.error ?? '');
-          setStatus('failed');
-        }
-      }
-    });
-
-    ws.addEventListener('error', () => {
-      setError('WebSocket error');
-    });
   };
 
   const handleUpload = async () => {
@@ -201,7 +231,7 @@ const App = () => {
       status: 'processing',
       createdAt: data.created_at,
     });
-    subscribe(data.job_id);
+    sendSubscribe(data.job_id);
   };
 
   const handleFetch = async () => {
@@ -235,15 +265,7 @@ const App = () => {
       error: data.error ?? '',
       createdAt: data.created_at,
     });
-  };
-
-  const handleSubscribe = () => {
-    if (!jobId) {
-      setError('Job ID is required');
-      return;
-    }
-    setSelectedJobId(jobId);
-    subscribe(jobId);
+    sendSubscribe(jobId);
   };
 
   const selectedEntry = history.find((item) => item.jobId === selectedJobId);
@@ -289,9 +311,6 @@ const App = () => {
         <div className="row">
           <button type="button" onClick={handleFetch}>
             Fetch Result
-          </button>
-          <button type="button" onClick={handleSubscribe}>
-            Subscribe WS
           </button>
         </div>
       </section>
