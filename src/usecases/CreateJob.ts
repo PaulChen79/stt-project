@@ -12,7 +12,7 @@ export type CreateJobInput = {
 
 export type CreateJobOutput = {
   jobId: string;
-  status: 'pending';
+  status: 'processing';
   createdAt: Date;
 };
 
@@ -55,7 +55,7 @@ export class CreateJob {
 
     const job = new Job({
       id: jobId,
-      status: 'pending',
+      status: 'processing',
       originalFilename: input.originalFilename,
       audioPath: saved.path,
       transcript: null,
@@ -69,6 +69,6 @@ export class CreateJob {
     await this.jobRepository.create(job);
     await this.jobQueue.enqueue({ jobId, audioPath: saved.path });
 
-    return { jobId, status: 'pending', createdAt: now };
+    return { jobId, status: 'processing', createdAt: now };
   }
 }

@@ -85,9 +85,9 @@ describe('CreateJob', () => {
     });
 
     expect(output.jobId).toBe('job-123');
-    expect(output.status).toBe('pending');
+    expect(output.status).toBe('processing');
     expect(output.createdAt).toBe(fixedNow);
-    expect(jobRepository.created?.status).toBe('pending');
+    expect(jobRepository.created?.status).toBe('processing');
     expect(jobRepository.created?.audioPath).toBe('/tmp/job-123.wav');
     expect(jobQueue.enqueued).toEqual({
       jobId: 'job-123',

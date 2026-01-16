@@ -7,11 +7,13 @@
 
 ## 2. 功能需求
 - 提供音訊檔上傳 API，立即回傳 `jobId`，不可同步阻塞 STT/LLM。
+- 建立任務回應狀態為 `processing`，前端透過 WebSocket 即時追蹤結果。
 - 任務狀態必須包含 `pending / processing / completed / failed`。
 - Worker 非同步處理流程：STT 轉錄 -> LLM 摘要 -> 儲存結果。
 - 可查詢任務結果（原文 transcript、摘要 summary、錯誤訊息）。
 - 以 WebSocket 即時回傳任務進度與狀態。
 - 提供簡易 React 前端，可上傳檔案、查詢結果、顯示狀態與摘要。
+- 前端需包含歷史紀錄列表與詳情頁面（無 API 先以前端暫存實作）。
 - 需提供架構圖或流程圖（Mermaid 即可）。
 - 需提供 README（啟動方式、API 規格、設定方式）。
 
@@ -46,7 +48,7 @@
 ```json
 {
   "jobId": "uuid",
-  "status": "pending",
+  "status": "processing",
   "createdAt": "2026-01-15T22:10:00Z"
 }
 ```

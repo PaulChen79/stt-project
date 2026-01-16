@@ -37,7 +37,7 @@ Response (202):
 ```json
 {
   "job_id": "uuid",
-  "status": "pending",
+  "status": "processing",
   "created_at": "2026-01-15T22:10:00Z"
 }
 ```
