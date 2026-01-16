@@ -39,7 +39,26 @@ Base path: `/api`
 - 錯誤：
   - 404 `JOB_NOT_FOUND`
 
-### 1.3 健康檢查
+### 1.3 任務列表
+`GET /api/jobs?limit=20`
+- 回傳 (200)：
+```json
+{
+  "jobs": [
+    {
+      "job_id": "uuid",
+      "status": "pending|processing|completed|failed",
+      "transcript": "string|null",
+      "summary": "string|null",
+      "error": "string|null",
+      "created_at": "...",
+      "updated_at": "..."
+    }
+  ]
+}
+```
+
+### 1.4 健康檢查
 `GET /api/health` -> `200 OK`
 
 ## 2. WebSocket 合約

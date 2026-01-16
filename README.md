@@ -58,6 +58,26 @@ Response (200):
 }
 ```
 
+### List Jobs
+`GET /api/jobs?limit=20`
+
+Response (200):
+```json
+{
+  "jobs": [
+    {
+      "job_id": "uuid",
+      "status": "pending|processing|completed|failed",
+      "transcript": "string|null",
+      "summary": "string|null",
+      "error": "string|null",
+      "created_at": "...",
+      "updated_at": "..."
+    }
+  ]
+}
+```
+
 ### Health
 `GET /api/health`
 

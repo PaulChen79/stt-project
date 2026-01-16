@@ -24,6 +24,9 @@ class InMemoryRepo implements JobRepository {
   async getById(): Promise<Job | null> {
     return this.job;
   }
+  async listRecent(): Promise<Job[]> {
+    return [];
+  }
   async update(job: Job): Promise<void> {
     this.job = job;
   }

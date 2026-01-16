@@ -54,6 +54,9 @@ class FakeRepo implements JobRepository {
   async getById(): Promise<Job | null> {
     return null;
   }
+  async listRecent(): Promise<Job[]> {
+    return [];
+  }
   async update(): Promise<void> {}
   async markFailed(): Promise<void> {}
   async listExpired(): Promise<Job[]> {

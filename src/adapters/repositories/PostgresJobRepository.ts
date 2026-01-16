@@ -78,6 +78,14 @@ export class PostgresJobRepository implements JobRepository {
     return mapRowToJob(result.rows[0]);
   }
 
+  async listRecent(limit: number): Promise<Job[]> {
+    const result = await this.pool.query<JobRow>(
+      'SELECT * FROM jobs ORDER BY created_at DESC LIMIT $1',
+      [limit],
+    );
+    return result.rows.map(mapRowToJob);
+  }
+
   async update(job: Job): Promise<void> {
     await this.pool.query(
       `UPDATE jobs

@@ -11,6 +11,7 @@
 - 任務狀態必須包含 `pending / processing / completed / failed`。
 - Worker 非同步處理流程：STT 轉錄 -> LLM 摘要 -> 儲存結果。
 - 可查詢任務結果（原文 transcript、摘要 summary、錯誤訊息）。
+- 提供任務列表 API 供前端顯示歷史紀錄。
 - 以 WebSocket 即時回傳任務進度與狀態。
 - 提供簡易 React 前端，可上傳檔案、查詢結果、顯示狀態與摘要。
 - 前端啟動後自動訂閱歷史任務，無需手動 Subscribe 即可即時更新。
@@ -73,7 +74,26 @@
 }
 ```
 
-### 6.3 健康檢查
+### 6.3 任務列表
+`GET /api/jobs?limit=20`
+- 回傳 (200)：
+```json
+{
+  "jobs": [
+    {
+      "job_id": "uuid",
+      "status": "pending|processing|completed|failed",
+      "transcript": "string|null",
+      "summary": "string|null",
+      "error": "string|null",
+      "created_at": "...",
+      "updated_at": "..."
+    }
+  ]
+}
+```
+
+### 6.4 健康檢查
 `GET /api/health` -> `200 OK`
 
 ## 7. WebSocket 規格

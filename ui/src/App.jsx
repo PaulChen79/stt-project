@@ -1,7 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
-const STORAGE_KEY = 'stt_history';
-
 const normalizeBase = (value) => value.replace(/\/$/, '');
 
 const defaultBase =
@@ -20,22 +18,6 @@ const defaultBase =
       })()
     : 'http://localhost:3000';
 
-const loadHistory = () => {
-  if (typeof window === 'undefined') {
-    return [];
-  }
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) {
-      return [];
-    }
-    const data = JSON.parse(raw);
-    return Array.isArray(data) ? data : [];
-  } catch {
-    return [];
-  }
-};
-
 const App = () => {
   const [apiBase, setApiBase] = useState(defaultBase);
   const [file, setFile] = useState(null);
@@ -46,7 +28,7 @@ const App = () => {
   const [summary, setSummary] = useState('');
   const [error, setError] = useState('');
   const [modalError, setModalError] = useState('');
-  const [history, setHistory] = useState(loadHistory);
+  const [history, setHistory] = useState([]);
   const [selectedJobId, setSelectedJobId] = useState('');
 
   const wsRef = useRef(null);
@@ -58,16 +40,35 @@ const App = () => {
     return base.replace(/^http/, 'ws');
   }, [apiBase]);
 
-  useEffect(() => {
-    if (typeof window === 'undefined') {
+  const fetchHistory = async () => {
+    const response = await fetch(`${normalizeBase(apiBase)}/api/jobs?limit=50`);
+    if (!response.ok) {
+      const data = await response.json().catch(() => null);
+      setModalError(data?.error?.message ?? 'Failed to load history');
       return;
     }
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
-  }, [history]);
+    const data = await response.json();
+    const items = Array.isArray(data.jobs) ? data.jobs : [];
+    setHistory(
+      items.map((job) => ({
+        jobId: job.job_id,
+        status: job.status,
+        transcript: job.transcript,
+        summary: job.summary,
+        error: job.error,
+        createdAt: job.created_at,
+        updatedAt: job.updated_at,
+      })),
+    );
+  };
 
   useEffect(() => {
     selectedRef.current = selectedJobId;
   }, [selectedJobId]);
+
+  useEffect(() => {
+    void fetchHistory();
+  }, [apiBase]);
 
   useEffect(() => {
     closeSocket();
@@ -233,6 +234,7 @@ const App = () => {
       createdAt: data.created_at,
     });
     sendSubscribe(data.job_id);
+    void fetchHistory();
   };
 
   const handleFetch = async () => {
@@ -267,6 +269,7 @@ const App = () => {
       createdAt: data.created_at,
     });
     sendSubscribe(jobId);
+    void fetchHistory();
   };
 
   const selectedEntry = history.find((item) => item.jobId === selectedJobId);

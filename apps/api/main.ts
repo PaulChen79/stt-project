@@ -7,6 +7,7 @@ import { LocalFileStorage } from '../../src/adapters/repositories/LocalFileStora
 import { PostgresJobRepository } from '../../src/adapters/repositories/PostgresJobRepository';
 import { CreateJob } from '../../src/usecases/CreateJob';
 import { GetJob } from '../../src/usecases/GetJob';
+import { ListJobs } from '../../src/usecases/ListJobs';
 import { loadEnv } from '../../src/infrastructure/config/env';
 import { SystemClock } from '../../src/infrastructure/config/systemClock';
 import { UuidGenerator } from '../../src/infrastructure/config/uuidGenerator';
@@ -38,6 +39,7 @@ const createJob = new CreateJob({
   retentionDays: 7,
 });
 const getJob = new GetJob({ jobRepository });
+const listJobs = new ListJobs({ jobRepository });
 
 const app = express();
 
@@ -99,6 +101,23 @@ app.get('/api/jobs/:jobId', async (req, res) => {
     error: job.error,
     created_at: job.createdAt.toISOString(),
     updated_at: job.updatedAt.toISOString(),
+  });
+});
+
+app.get('/api/jobs', async (req, res) => {
+  const limit = Number(req.query.limit ?? 20);
+  const result = await listJobs.execute({ limit });
+
+  return res.json({
+    jobs: result.jobs.map((job) => ({
+      job_id: job.id,
+      status: job.status,
+      transcript: job.transcript,
+      summary: job.summary,
+      error: job.error,
+      created_at: job.createdAt.toISOString(),
+      updated_at: job.updatedAt.toISOString(),
+    })),
   });
 });
 
