@@ -83,6 +83,12 @@ export class ProcessJob {
         transcript: transcription.transcript,
         summary: summary.summary,
       });
+      await this.jobEvents.publish({
+        type: 'progress',
+        jobId: job.id,
+        stage: 'summarizing',
+        message: 'Summarizing done',
+      });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';
       if (input.markFailedOnError ?? true) {
